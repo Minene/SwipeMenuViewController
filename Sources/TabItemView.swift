@@ -1,54 +1,103 @@
 import UIKit
 
+public enum TitleImagePosition {
+    case left
+    case right
+}
+
 final class TabItemView: UIView {
-
-    private(set) var titleLabel: UILabel = UILabel()
-
+    
+    private(set) var titleLabel: UILabel!
+    
+    private(set) var titleImage: UIImageView!
+    
+    private(set) var titleStack:UIStackView = UIStackView()
+    
     public var textColor: UIColor = UIColor(red: 140/255, green: 140/255, blue: 140/255, alpha: 1.0)
     public var selectedTextColor: UIColor = .white
-
-    public var isSelected: Bool = false {
+    
+    public var image: UIImage? {
         didSet {
-            if isSelected {
-                titleLabel.textColor = selectedTextColor
-            } else {
-                titleLabel.textColor = textColor
+            if let _ = titleImage {
+                titleImage.image = image
+                titleImage.isHidden = false
+            }else{
+                titleImage.image = nil
+                titleImage.isHidden = true
             }
         }
     }
-
-    public override init(frame: CGRect) {
-        super.init(frame: frame)
-
-        setupLabel()
+    public var selectedImage: UIImage? {
+        didSet {
+            if let _ = selectedImage {
+                titleImage.highlightedImage = selectedImage
+            }else{
+                titleImage.highlightedImage = nil
+            }
+        }
     }
-
+    
+    public var isSelected: Bool = false {
+        didSet {
+            if let _ = titleImage {
+                titleImage.isHighlighted = isSelected
+            }
+            if isSelected {
+                titleLabel.textColor = selectedTextColor
+                titleImage.isHidden = titleImage.highlightedImage == nil
+            } else {
+                titleLabel.textColor = textColor
+                titleImage.isHidden = titleImage.image == nil
+            }
+        }
+    }
+    
+    //    public override init(frame: CGRect) {
+    //        super.init(frame: frame)
+    //        setupLabel()
+    //    }
+    
+    public init(frame: CGRect, imagePosition:TitleImagePosition? = .left) {
+        super.init(frame: frame)
+        setupLabel(imagePosition: imagePosition)
+    }
+    
     required public init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
     }
-
+    
     override open func layoutSubviews() {
         super.layoutSubviews()
     }
-
-    private func setupLabel() {
+    
+    private func setupLabel(imagePosition:TitleImagePosition? = .left) {
         titleLabel = UILabel(frame: bounds)
         titleLabel.textAlignment = .center
         titleLabel.font = UIFont.boldSystemFont(ofSize: 14)
         titleLabel.textColor = UIColor(red: 140/255, green: 140/255, blue: 140/255, alpha: 1.0)
         titleLabel.backgroundColor = UIColor.clear
-        addSubview(titleLabel)
+        
+        titleImage = UIImageView(frame: CGRect(x: 0, y: 0, width: bounds.size.height, height: bounds.size.height))
+        titleImage.contentMode = .scaleAspectFit
+        titleImage.isHidden = true;
+        
+        titleStack = UIStackView(arrangedSubviews: imagePosition == .left ? [titleImage,titleLabel] : [titleLabel,titleImage])
+        titleStack.axis = .horizontal
+        titleStack.distribution = .fill
+        titleStack.alignment = .center
+        titleStack.spacing = 3
+        addSubview(titleStack)
         layoutLabel()
     }
-
+    
     private func layoutLabel() {
-
-        titleLabel.translatesAutoresizingMaskIntoConstraints = false
+        
+        titleStack.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            titleLabel.topAnchor.constraint(equalTo: self.topAnchor),
-            titleLabel.widthAnchor.constraint(equalTo: self.widthAnchor),
-            titleLabel.centerXAnchor.constraint(equalTo: self.centerXAnchor),
-            titleLabel.bottomAnchor.constraint(equalTo: self.bottomAnchor)
-        ])
+            titleStack.topAnchor.constraint(equalTo: self.topAnchor),
+            titleStack.widthAnchor.constraint(equalTo: self.widthAnchor),
+            titleStack.centerXAnchor.constraint(equalTo: self.centerXAnchor),
+            titleStack.bottomAnchor.constraint(equalTo: self.bottomAnchor)
+            ])
     }
 }
